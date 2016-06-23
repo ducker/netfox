@@ -133,6 +133,11 @@ class NFXDetailsController: NFXGenericController, MFMailComposeViewControllerDel
         }
         actionSheetController.addAction(fullLogAction)
         
+        let shareLogAction: UIAlertAction = UIAlertAction(title: "Share log", style: .Default) { action -> Void in
+            self.shareLog()
+        }
+        actionSheetController.addAction(shareLogAction)
+        
         if let popoverController = actionSheetController.popoverPresentationController {
             popoverController.barButtonItem = sender
         }
@@ -329,6 +334,37 @@ class NFXDetailsController: NFXGenericController, MFMailComposeViewControllerDel
 
             self.presentViewController(mailComposer, animated: true, completion: nil)
         }
+    }
+    
+    func shareLog() {
+        var tempString: String
+        tempString = String()
+        
+        tempString += "** INFO **\n"
+        tempString += "\(getInfoStringFromObject(self.selectedModel).string)\n\n"
+        
+        tempString += "** REQUEST **\n"
+        tempString += "\(getRequestStringFromObject(self.selectedModel).string)\n\n"
+        
+        tempString += "** RESPONSE **\n"
+        tempString += "\(getResponseStringFromObject(self.selectedModel).string)\n\n"
+        
+        tempString += "logged via netfox - [https://github.com/kasketis/netfox]\n"
+        
+        var activityItems: [AnyObject] = [tempString]
+        
+        let requestFilePath = self.selectedModel.getRequestBodyFilepath()
+        if let requestFileData = NSData(contentsOfFile: requestFilePath as String) {
+            activityItems.append(requestFileData)
+        }
+        
+        let responseFilePath = self.selectedModel.getResponseBodyFilepath()
+        if let responseFileData = NSData(contentsOfFile: responseFilePath as String) {
+            activityItems.append(responseFileData)
+        }
+        
+        let activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        self.presentViewController(activityViewController, animated: true, completion: nil)
     }
     
     func mailComposeController(controller: MFMailComposeViewController, didFinishWithResult result: MFMailComposeResult, error: NSError?)
